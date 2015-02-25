@@ -36,8 +36,8 @@ data_out.map = mapping_vect;
 % to do:
 %	extract the other testdata as well
 
-data.pitot.tubenr_z0 = [1 1];%mapping_vect(101);
-data.pitot.tubenr_z  = [2 2];%mapping_vect(102);
+data.pitot.tubenr_z0 = [1 1];%mapping_vect();
+data.pitot.tubenr_z  = [2 2];%mapping_vect();
 
 % extract pitot pressure values and pressure values
 data.pitot.z0 = zeros(data.no_of_tests,1);
