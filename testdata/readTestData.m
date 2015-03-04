@@ -1,4 +1,4 @@
-function [data_out] = readTestData(testrun_nr)
+function [data_out] = readTestData(testrun_nr, no_of_airfoilpipes)
 
 data_out = struct;
 
@@ -14,7 +14,7 @@ testData_name  = [filename '_testData' '.xlsx'];
 numbering_name = [filename '_numbers'  '.xlsx'];
 
 data = struct;
-manoData  		      = xlsread([filename '/' manoData_name]);
+manoData  		       = xlsread([filename '/' manoData_name]);
 data.manometer        = manoData;
 
 data.no_of_datapoints = length(manoData(:,1));
@@ -68,8 +68,8 @@ data.no_airfoil_tubes =	data.airfoil_tube(length(data.airfoil_tube));
 %%%%%%%%%%%%%%%%%%%%%%%
 [testData_val, testData_str]  = xlsread([filename '/' testData_name]);
 
-attack = 'Angrepsvinkel';
-tilt = 'Rotorvinkel';
+attack    = 'Angrepsvinkel';
+tilt      = 'Rotorvinkel';
 manoangle = 'Manovinkel';
 
 testParam_str = num2cell(testData_str(1,:));
@@ -119,12 +119,55 @@ for i=1:data.no_of_tests
 			j = j + 1;
 		end	
 	end;
-	% use cell2mat(data_out.deltaZ(i)) to extract the matrix again
-	data_out.deltaH{i} = deltaH_curr;	
+	% use cell2mat(data_out.deltaH(i)) to extract the matrix again
+	deltaH{i} = deltaH_curr;	
 end;
 
 data_out.pitot_h1 = data.pitot1;
 data_out.pitot_h2 = data.pitot2;
 
+% run through the list again, and add -1 for the nonvalid pressure points
+dH = zeros(no_of_airfoilpipes,data.no_of_tests);
+%data.deltaH(1)
+for j=1:length(deltaH)
+	number = 1;	
+	curr_dH = cell2mat(deltaH(j));
+	no_of_valid_pipes = length(curr_dH(:,1));
+	for i=1:no_of_airfoilpipes
+		if i > no_of_valid_pipes % ||number > no_of_valid_pipes 
+			%number
+			%dH(number,j) = NaN;
+			dH(number,j) = NaN;						
+		else
+			data   	= curr_dH(i,1);
+			pipe_num	= curr_dH(i,2);
+
+			diff = pipe_num - number;	
+			if diff ~= 0
+				% pipe not in use
+				for h=1:diff
+					dH(number+h-1,j) = NaN;
+				end
+				number = pipe_num;
+				dH(number,j) = data;			
+				%% TEST
+				%number = pipe_num-1;
+			else
+				% pipe in use
+
+				%number
+				dH(number,j) = data;
+			end
+		end
+		number = number + 1;
+		if number > no_of_airfoilpipes
+			break;
+		end;
+	end
+end
+
+data_out.deltaZ = dH;
+%data_out.dZ = deltaH;
+%data_out.deltaH = deltaH;
 
 end
